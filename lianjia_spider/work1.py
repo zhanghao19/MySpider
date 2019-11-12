@@ -14,10 +14,9 @@ class LianJia:
         self.executor = ThreadPoolExecutor(max_workers=2)  # 直接使用内置线程池, 设置最大线程数
 
         # 声明Chrome浏览器对象
-        self.driver = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
-        self.driver2 = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
-        self.driver3 = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
-        # self.driver = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
+        self.driver = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
+        self.driver2 = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
+        self.driver3 = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
 
         # 声明数据库对象
         self.client = MongoClient(host="localhost", port=27017)
@@ -68,13 +67,16 @@ class LianJia:
             houseURL_ls = (house.get_attribute("href") for house in house_ls)
             # 定义一个生成器， 每次生成一个房子的链接， 传入线程当中执行
             for i in range(len(house_ls)):
-                # 遍历出每间房子的详情页链接
-                item['houseURL'] = next(houseURL_ls)
-                # self.house_detail(dict(item), i)    # 传递深拷贝的item对象, 以及目前的索引
-                self.executor.submit(self.house_detail, item=dict(item), driver=self.driver2)
+                try:
+                    # 遍历出每间房子的详情页链接
+                    item['houseURL'] = next(houseURL_ls)
+                    # self.house_detail(dict(item), i)    # 传递深拷贝的item对象, 以及目前的索引
+                    self.executor.submit(self.house_detail, item=dict(item), driver=self.driver2)
 
-                item['houseURL'] = next(houseURL_ls)
-                self.executor.submit(self.house_detail, item=dict(item), driver=self.driver3)
+                    item['houseURL'] = next(houseURL_ls)
+                    self.executor.submit(self.house_detail, item=dict(item), driver=self.driver3)
+                except StopIteration:
+                    break
 
             else:
                 print(f'>>[{item["partName"]}]第{page}页--[Done]')
