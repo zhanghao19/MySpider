@@ -14,7 +14,10 @@ class LianJia:
         self.executor = ThreadPoolExecutor(max_workers=2)  # 直接使用内置线程池, 设置最大线程数
 
         # 声明Chrome浏览器对象
-        self.driver = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
+        self.driver = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
+        self.driver2 = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
+        self.driver3 = webdriver.Chrome(r'E:\I want something just like this\spider\webdriver\chromedriver.exe')
+        # self.driver = webdriver.Chrome(r'E:\Download\BaiduYunDownload\chromedriver_win32\chromedriver.exe')
 
         # 声明数据库对象
         self.client = MongoClient(host="localhost", port=27017)
@@ -24,9 +27,9 @@ class LianJia:
 
     def write_item(self, item):
         # self.coll.insert_one(item)  # 写入数据库里
-        # print(f'<{index}>[{item["title"]}]写入成功')
-        with open('logs.txt', 'a') as f:
-            f.write(f'[{item["title"]}]写入成功')
+        print(f'>[{item["title"]}]写入成功')
+        # with open('logs.txt', 'a') as f:
+        #     f.write(f'[{item["title"]}]写入成功')
 
     def handle_price(self, priceStr):
         """返回获取价格的时间"""
@@ -35,23 +38,22 @@ class LianJia:
         }
         return date
 
-    def house_detail(self, item, houseURL):
+    def house_detail(self, item, driver):
         """获取一间房子的详情信息"""
-        # self.driver.get(item['houseURL'])  # 访问一间房子的详情页
-        self.driver.get(houseURL)  # 访问一间房子的详情页
+        driver.get(item['houseURL'])  # 访问一间房子的详情页
         # 获取页面上的房子信息
-        item['title'] = self.driver.find_element_by_tag_name('h1').text    # 标题
-        price = self.driver.find_element_by_css_selector('span.total').text    # 价格
+        item['title'] = driver.find_element_by_tag_name('h1').text    # 标题
+        price = driver.find_element_by_css_selector('span.total').text    # 价格
         first_price = self.handle_price(price)  # 第一次的价格
         item['price'] = [first_price]   # 房子的价格, 可增量爬取
-        houseInfo = self.driver.find_elements_by_css_selector('div.mainInfo')
+        houseInfo = driver.find_elements_by_css_selector('div.mainInfo')
         item['room'] = houseInfo[0].text    # 户型
         item['faceTo'] = houseInfo[1].text   # 朝向
         item['area'] = houseInfo[2].text     # 面积
         # 小区名
-        item['communityName'] = self.driver.find_element_by_css_selector('div.communityName a.info').text
+        item['communityName'] = driver.find_element_by_css_selector('div.communityName a.info').text
         # 发布日期
-        item['releaseDate'] = self.driver.find_element_by_xpath('//div[@class="transaction"]/div[2]/ul/li/span[2]').text
+        item['releaseDate'] = driver.find_element_by_xpath('//div[@class="transaction"]/div[2]/ul/li/span[2]').text
         self.write_item(item)    # 执行写入
 
     def house_list(self, item):
@@ -62,17 +64,19 @@ class LianJia:
             # self.driver.find_element_by_link_text('最新发布').click()
             # 获取到所有的房子链接
             house_ls = self.driver.find_elements_by_xpath('//ul[@class="sellListContent"]//div[@class="title"]/a')
-            houseURL_ls = [house.get_attribute("href") for house in house_ls]
-            # print(f'任务已写入线程池, URL->[{data["houseURL"]}]')
-
+            # 定义为tuple, 作为url生成器
+            houseURL_ls = (house.get_attribute("href") for house in house_ls)
+            # 定义一个生成器， 每次生成一个房子的链接， 传入线程当中执行
             for i in range(len(house_ls)):
                 # 遍历出每间房子的详情页链接
-                item['houseURL'] = houseURL_ls[i]
+                item['houseURL'] = next(houseURL_ls)
                 # self.house_detail(dict(item), i)    # 传递深拷贝的item对象, 以及目前的索引
-                self.executor.sumbit(self.house_detail, (dict(item), ))
+                self.executor.submit(self.house_detail, item=dict(item), driver=self.driver2)
+
+                item['houseURL'] = next(houseURL_ls)
+                self.executor.submit(self.house_detail, item=dict(item), driver=self.driver3)
 
             else:
-                self.executor.wait(all_task, return_when=ALL_COMPLETED)
                 print(f'>>[{item["partName"]}]第{page}页--[Done]')
         else:
             print(f'>>>[{item["partName"]}]--[Done]')
