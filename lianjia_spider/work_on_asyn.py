@@ -92,9 +92,12 @@ class LianJia:
         temp_ls = self.driver.find_elements_by_xpath('//div[@class="position"]/dl[2]/dd/div[1]/div/a')
         # 城区名和url组成键值对
         part_dict = {ele.text: ele.get_attribute("href") for ele in temp_ls}
-        # 初始化一个容器, 用来存放房子的信息
-        item = {'partName': self.part, 'partURL': part_dict[self.part]}
-        self.house_list(dict(item), self.driver)  # 传递深拷贝的item对象
+        try:
+            # 初始化一个容器, 用来存放房子的信息
+            item = {'partName': self.part, 'partURL': part_dict[self.part]}
+            self.house_list(dict(item), self.driver)  # 传递深拷贝的item对象
+        except KeyError:
+            print(f'请指定有效的城区名, 如下：\n{list(part_dict.keys())}')
 
     def __del__(self):
         self.driver.close()  # 关闭浏览器1
