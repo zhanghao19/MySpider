@@ -7,7 +7,8 @@ from datetime import datetime
 import requests
 from lxml import etree
 from pymongo import MongoClient
-from selenium import webdriver
+
+from MyPackages.get_cookies import SeleniumGetCookies
 
 
 class ZhiLianJob:
@@ -17,12 +18,7 @@ class ZhiLianJob:
         # 设置过期时间
         self.coll.create_index([('WriteTime', 1)], expireAfterSeconds=259200)
         # 使用selenium获取cookies,方法很慢,但是最有效
-        options = webdriver.ChromeOptions()
-        options.add_argument('--headless')
-        self.driver = webdriver.Chrome(executable_path='E:/chromedriver.exe', options=options)
-        self.driver.get("https://jobs.zhaopin.com")
-        cookie = [item["name"] + "=" + item["value"] for item in self.driver.get_cookies()]
-        self.cookiestr = ';'.join(item for item in cookie)
+        self.cookies = SeleniumGetCookies('https://www.baidu.com').run()
 
     def write_item(self, item):
         item['WriteTime'] = datetime.utcnow()
@@ -35,7 +31,7 @@ class ZhiLianJob:
             print('已爬取，跳过: ', item['URL'])
             return
         headers = {
-            'cookie': self.cookiestr,
+            'cookie': self.cookies,
         }
         # 获取详情页的数据
         resp = requests.get(url=item['URL'], headers=headers)
@@ -73,7 +69,6 @@ class ZhiLianJob:
 
     def __del__(self):
         # 到这里表示循环顺利执行完毕
-        self.driver.close()
         print('>>>>[Well Done]')
 
 
