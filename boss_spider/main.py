@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # author: hao 2019/11/21-20:00
 from datetime import datetime
 from pymongo import MongoClient
@@ -41,7 +41,8 @@ class BossJob:
         item['Info'] = self.chrome2.find_element_by_xpath('//div[@class="job-banner"]//p').text  # 城市,工作经验,学历
         tags_ls = self.chrome2.find_elements_by_xpath('//div[@class="info-primary"]//div[@class="job-tags"]/span')
         item['Tags'] = [tag.text for tag in tags_ls]  # 工作标签
-        item['Description'] = self.chrome2.find_element_by_xpath('//div[@class="job-sec"]/div[@class="text"]').text  # 职位描述
+        item['Description'] = self.chrome2.find_element_by_xpath(
+            '//div[@class="job-sec"]/div[@class="text"]').text  # 职位描述
         item['Company'] = self.chrome2.find_element_by_xpath('//div[@class="company-info"]/a[1]').get_attribute(
             'title').split()[0]  # 公司名称
         item['UpdateTime'] = self.chrome2.find_elements_by_class_name('gray')[0].text[4:]  # 更新时间
@@ -76,8 +77,8 @@ class BossJob:
 
     def __del__(self):
         # 到这里表示循环顺利执行完毕
-        self.chrome.close()     # 关闭浏览器1
-        self.chrome2.close()     # 关闭浏览器2
+        self.chrome.close()  # 关闭浏览器1
+        self.chrome2.close()  # 关闭浏览器2
         print('>>>>[Well Done]')
 
 

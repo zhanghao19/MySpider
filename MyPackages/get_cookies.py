@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # author: hao 2019/12/16-15:20
 from selenium import webdriver
 
@@ -19,7 +19,7 @@ class SeleniumGetCookies:
     def __del__(self):
         self.driver.close()
 
+
 if __name__ == '__main__':
     s = SeleniumGetCookies('https://www.baidu.com').run()
     print(s)
-
